@@ -1,10 +1,9 @@
-import 'dart:math';
-
-import 'package:drag_and_drop/data/colors.dart';
-import 'package:drag_and_drop/data/icons_data.dart';
 import 'package:drag_and_drop/draggable_list.dart';
-import 'package:drag_and_drop/draggable_object.dart';
+import 'package:drag_and_drop/icon_drag_target.dart';
+import 'package:drag_and_drop/providers/game_engine.dart';
+import 'package:drag_and_drop/providers/items.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class GameBoard extends StatefulWidget {
   @override
@@ -12,17 +11,15 @@ class GameBoard extends StatefulWidget {
 }
 
 class _GameBoardState extends State<GameBoard> {
-  final Random r = Random();
-  List<Widget> items;
-  Widget item;
+  List<Icon> draggableIcons = [];
+  List<Item> targetItems = [];
+  ItemsRow itemsRow;
+
   @override
   void initState() {
-    item = Container(
-      color: Colors.black,
-      height: 100,
-      width: 100,
-    );
-    items = generateGame();
+    draggableIcons = GameEngine.generateTopRow(10, 100);
+    itemsRow = Provider.of<ItemsRow>(context, listen: false);
+    itemsRow.generateIconsRow(10, 2, 100);
     super.initState();
   }
 
@@ -31,7 +28,7 @@ class _GameBoardState extends State<GameBoard> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Transform Demo'),
+        title: Text('Game Board'),
       ),
       body: Column(
         mainAxisSize: MainAxisSize.min,
@@ -39,46 +36,29 @@ class _GameBoardState extends State<GameBoard> {
           Container(
             height: 100,
             child: DraggableList(
-              items: items,
+              items: draggableIcons,
             ),
           ),
-          SizedBox(
-            height: 100,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: [
-                DraggableObject(
-                  icon: randomIcon(),
-                ),
-                DragTarget(
-                  onWillAccept: (_) {
-                    return true;
-                  },
-                  onAccept: (_) {
-                    setState(() {
-                      item = _;
-                    });
-                  },
-                  builder: (_, acceptedItems, ___) {
-                    return item;
-                  },
-                )
-              ],
+          for (int j = 0; j < itemsRow.itemsRow.length; j++) ...[
+            Container(
+              height: 100,
+              margin: EdgeInsets.only(top: 20),
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: itemsRow.itemsRow[j].length,
+                itemBuilder: (ct, i) {
+                  return ChangeNotifierProvider.value(
+                    value: itemsRow.itemsRow[j][i],
+                    builder: (c, child) {
+                      return IconDragTarget();
+                    },
+                  );
+                },
+              ),
             ),
-          ),
+          ]
         ],
       ),
     );
   }
-
-  List<Widget> generateGame() {
-    final count = r.nextInt(15) + 5;
-    List<Icon> items = [];
-    for (int i = 0; i < count; i++) items.add(randomIcon());
-    return items;
-  }
-
-  Icon randomIcon() => Icon(iconData[r.nextInt(iconData.length)], color: randomColor(), size: 100);
-
-  Color randomColor() => colors[r.nextInt(colors.length)];
 }

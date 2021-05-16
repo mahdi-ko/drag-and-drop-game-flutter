@@ -1,6 +1,6 @@
-# drag_and_drop
+# drag and drop game 
 
-A new Flutter project.
+this game is made with flutter for the purpose of trying drag and drop.
 
 ## Getting Started
 
