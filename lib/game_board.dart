@@ -1,9 +1,12 @@
+import 'dart:developer';
+
 import 'package:drag_and_drop/draggable_list.dart';
-import 'package:drag_and_drop/icon_drag_target.dart';
 import 'package:drag_and_drop/providers/game_engine.dart';
 import 'package:drag_and_drop/providers/items.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'icon_drag_target_list.dart';
 
 class GameBoard extends StatefulWidget {
   @override
@@ -12,53 +15,57 @@ class GameBoard extends StatefulWidget {
 
 class _GameBoardState extends State<GameBoard> {
   List<Icon> draggableIcons = [];
-  List<Item> targetItems = [];
-  ItemsRow itemsRow;
-
   @override
   void initState() {
-    draggableIcons = GameEngine.generateTopRow(10, 100);
-    itemsRow = Provider.of<ItemsRow>(context, listen: false);
-    itemsRow.generateIconsRow(10, 2, 100);
+    Future.delayed(Duration.zero).then((_) {
+      initGameData();
+    });
     super.initState();
+  }
+
+  initGameData() {
+    draggableIcons = context.read(gameEngineProvider).generateTopRow(8, 100);
+
+    final itemsRow = context.read(itemsProvider);
+    itemsRow.generateIconsRow(10, 4, 100);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      floatingActionButton: FloatingActionButton(
+        child: Text("Reset"),
+        onPressed: initGameData,
+      ),
       appBar: AppBar(
         title: Text('Game Board'),
       ),
-      body: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            height: 100,
-            child: DraggableList(
-              items: draggableIcons,
-            ),
-          ),
-          for (int j = 0; j < itemsRow.itemsRow.length; j++) ...[
+      body: Consumer(builder: (context, watch, child) {
+        final itemsRow = watch(itemsProvider);
+        log(itemsRow.itemsRow.length.toString());
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
             Container(
               height: 100,
-              margin: EdgeInsets.only(top: 20),
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: itemsRow.itemsRow[j].length,
-                itemBuilder: (ct, i) {
-                  return ChangeNotifierProvider.value(
-                    value: itemsRow.itemsRow[j][i],
-                    builder: (c, child) {
-                      return IconDragTarget();
-                    },
-                  );
-                },
+              child: DraggableList(
+                items: draggableIcons,
               ),
             ),
-          ]
-        ],
-      ),
+            for (int j = 0; j < itemsRow.itemsRow.length; j++) ...[
+              Container(
+                height: 100,
+                margin: EdgeInsets.only(top: 20),
+                child: IconDragTargetList(
+                  items: itemsRow.itemsRow[j],
+                  key: Key(itemsRow.idTracker.toString()),
+                ),
+              ),
+            ]
+          ],
+        );
+      }),
     );
   }
 }

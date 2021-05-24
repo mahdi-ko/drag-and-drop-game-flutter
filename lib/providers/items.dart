@@ -1,17 +1,25 @@
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'game_engine.dart';
 import 'dart:math' as math;
 
 final math.Random _r = math.Random();
 
+final itemsProvider = ChangeNotifierProvider<ItemsRow>((ref) {
+  final engine = ref.watch(gameEngineProvider);
+  return ItemsRow(engine);
+});
+
 class Item with ChangeNotifier {
+  int _id;
   Color _color;
   IconData _icon;
   bool _isEmpty;
   double _size;
-  Item(this._color, this._icon, this._isEmpty, this._size);
+  Item(this._id, this._color, this._icon, this._isEmpty, this._size);
 
+  int get id => _id;
   Color get color => _color;
   IconData get icon => _icon;
   bool get isEmpty => _isEmpty;
@@ -39,9 +47,17 @@ class Item with ChangeNotifier {
 }
 
 class ItemsRow with ChangeNotifier {
+  final GameEngine gameEngine;
   Map<int, List<Item>> _itemsRow = {};
 
+  ItemsRow(this.gameEngine);
   Map<int, List<Item>> get itemsRow => _itemsRow;
+  int _idTracker = 0;
+
+  int get idTracker {
+    _idTracker++;
+    return _idTracker;
+  }
 
   void generateIconsRow(int numOfRows, int numOfCols, double iconSize) {
     Map<int, List<Item>> items = {};
@@ -51,10 +67,11 @@ class ItemsRow with ChangeNotifier {
       for (int i = 0; i < count; i++) {
         final icon = _generateIconOnValidOnes(iconSize);
         if (items[j] == null) items[j] = [];
-        items[j].add(Item(icon.color, icon.icon, false, iconSize));
+        items[j].add(Item(idTracker, icon.color, icon.icon, true, iconSize));
       }
     }
     _itemsRow = items;
+    notifyListeners();
   }
 
   void clearRow() {
@@ -68,7 +85,7 @@ class ItemsRow with ChangeNotifier {
   }
 
   Icon _generateIconOnValidOnes(double iconSize) {
-    final icon = GameEngine.items[_r.nextInt(GameEngine.items.length)];
+    final icon = gameEngine.items[_r.nextInt(gameEngine.items.length)];
     return Icon(icon.icon, color: icon.color, size: iconSize);
   }
 }

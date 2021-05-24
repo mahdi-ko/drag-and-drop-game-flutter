@@ -1,27 +1,21 @@
-import 'package:drag_and_drop/providers/items.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'game_board.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ListenableProvider<ItemsRow>(create: (_) => ItemsRow()),
-      ],
-      child: MaterialApp(
-        title: 'Flutter Demo',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
-        home: GameBoard(),
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Drag And Drop',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
       ),
+      home: GameBoard(),
     );
   }
 }

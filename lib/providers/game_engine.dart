@@ -1,21 +1,23 @@
-import 'dart:developer';
-
 import 'package:drag_and_drop/data/colors.dart';
 import 'package:drag_and_drop/data/icons_data.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 final math.Random _r = math.Random();
+final gameEngineProvider = ChangeNotifierProvider((ref) => GameEngine());
 
 class GameEngine with ChangeNotifier {
-  static List<Icon> items = [];
+  List<Icon> items = [];
 
-  static List<Icon> generateTopRow(int numberOfItems, double iconSize) {
+  List<Icon> generateTopRow(int numberOfItems, double iconSize) {
     items.clear();
     for (int i = 0; i < numberOfItems; i++) {
       final icon = generateRandomIcon(iconSize);
       items.add(icon);
     }
+    notifyListeners();
     return items;
   }
 }
